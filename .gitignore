@@ -1,2 +1,3 @@
 # TODO: add ignores (node_modules, build outputs, env files, etc.)
 
+node_modules

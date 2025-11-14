@@ -1,2 +1,6 @@
-// TODO: TS config for mobile app
-
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true
+  }
+}
