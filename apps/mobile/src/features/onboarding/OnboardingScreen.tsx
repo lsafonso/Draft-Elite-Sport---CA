@@ -7,6 +7,7 @@ import {
   Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 
 interface OnboardingScreenProps {
   onFinished: () => void;
@@ -35,24 +36,19 @@ export default function OnboardingScreen({ onFinished }: OnboardingScreenProps) 
   const currentSlide = slides[index];
   const isLastSlide = index === slides.length - 1;
 
-  // Animation for the gold ball (bounce/pulse) - welcome figure
+  // Animation for icons (bounce/pulse)
   const ballTranslateY = useRef(new Animated.Value(0)).current;
   const ballScale = useRef(new Animated.Value(1)).current;
 
-  // Animation for player figure
-  const playerBallBounce = useRef(new Animated.Value(0)).current;
-  const playerSway = useRef(new Animated.Value(0)).current;
-
   // Animation for discover/radar figure
-  const radarInnerScale = useRef(new Animated.Value(1)).current;
-  const radarDotAngle = useRef(new Animated.Value(0)).current;
+  const radarScale = useRef(new Animated.Value(1)).current;
 
   // Animation for slide transitions
   const slideOpacity = useRef(new Animated.Value(1)).current;
   const slideTranslateX = useRef(new Animated.Value(0)).current;
   const isInitialMount = useRef(true);
 
-  // Animate the welcome ball on mount and keep it looping
+  // Animate icons with bounce/pulse on mount and keep it looping
   useEffect(() => {
     const bounceAnimation = Animated.loop(
       Animated.sequence([
@@ -86,82 +82,24 @@ export default function OnboardingScreen({ onFinished }: OnboardingScreenProps) 
     return () => bounceAnimation.stop();
   }, []);
 
-  // Animate player figure ball bounce
-  useEffect(() => {
-    const playerBallAnimation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(playerBallBounce, {
-          toValue: -6,
-          duration: 400,
-          useNativeDriver: true,
-        }),
-        Animated.timing(playerBallBounce, {
-          toValue: 0,
-          duration: 400,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    playerBallAnimation.start();
-    return () => playerBallAnimation.stop();
-  }, []);
-
-  // Animate player slight sway
-  useEffect(() => {
-    const swayAnimation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(playerSway, {
-          toValue: 2,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(playerSway, {
-          toValue: -2,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(playerSway, {
-          toValue: 0,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    swayAnimation.start();
-    return () => swayAnimation.stop();
-  }, []);
-
-  // Animate radar/discover figure
+  // Animate radar/discover figure with gentle pulse
   useEffect(() => {
     const radarPulse = Animated.loop(
       Animated.sequence([
-        Animated.timing(radarInnerScale, {
-          toValue: 1.1,
-          duration: 800,
+        Animated.timing(radarScale, {
+          toValue: 1.05,
+          duration: 1000,
           useNativeDriver: true,
         }),
-        Animated.timing(radarInnerScale, {
+        Animated.timing(radarScale, {
           toValue: 1,
-          duration: 800,
+          duration: 1000,
           useNativeDriver: true,
         }),
       ])
     );
-
-    const radarRotate = Animated.loop(
-      Animated.timing(radarDotAngle, {
-        toValue: 1,
-        duration: 1600,
-        useNativeDriver: true,
-      })
-    );
-
     radarPulse.start();
-    radarRotate.start();
-    return () => {
-      radarPulse.stop();
-      radarRotate.stop();
-    };
+    return () => radarPulse.stop();
   }, []);
 
   // Animate slide transition when index changes
@@ -204,87 +142,68 @@ export default function OnboardingScreen({ onFinished }: OnboardingScreenProps) 
 
   const renderFigure = (figure: string) => {
     switch (figure) {
-      case 'player': {
+      case 'player':
         return (
           <Animated.View
             style={[
-              styles.playerContainer,
-              {
-                transform: [{ translateX: playerSway }],
-              },
-            ]}
-          >
-            {/* Head */}
-            <View style={styles.playerHead} />
-            {/* Body */}
-            <View style={styles.playerBody} />
-            {/* Base/Legs */}
-            <View style={styles.playerBase} />
-            {/* Ball */}
-            <Animated.View
-              style={[
-                styles.playerBall,
-                {
-                  transform: [{ translateY: playerBallBounce }],
-                },
-              ]}
-            />
-          </Animated.View>
-        );
-      }
-
-      case 'discover': {
-        const dotX = radarDotAngle.interpolate({
-          inputRange: [0, 0.25, 0.5, 0.75, 1],
-          outputRange: [0, 20, 0, -20, 0],
-        });
-        const dotY = radarDotAngle.interpolate({
-          inputRange: [0, 0.25, 0.5, 0.75, 1],
-          outputRange: [-20, 0, 20, 0, -20],
-        });
-
-        return (
-          <View style={styles.radarContainer}>
-            {/* Outer circle */}
-            <View style={styles.radarOuter} />
-            {/* Middle circle */}
-            <View style={styles.radarMiddle} />
-            {/* Inner circle with pulse */}
-            <Animated.View
-              style={[
-                styles.radarInner,
-                {
-                  transform: [{ scale: radarInnerScale }],
-                },
-              ]}
-            />
-            {/* Rotating dot */}
-            <Animated.View
-              style={[
-                styles.radarDot,
-                {
-                  transform: [{ translateX: dotX }, { translateY: dotY }],
-                },
-              ]}
-            />
-          </View>
-        );
-      }
-
-      default: // 'welcome'
-        return (
-          <Animated.View
-            style={[
+              styles.iconContainer,
               {
                 transform: [
-                  { translateY: ballTranslateY },
                   { scale: ballScale },
+                  { translateY: ballTranslateY },
                 ],
               },
             ]}
           >
-            <View style={styles.ball}>
-              <View style={styles.ballInner} />
+            <View style={styles.iconGlow}>
+              <FontAwesome5 name="running" size={90} color="#D4AF37" />
+              <View style={styles.playerBallIcon}>
+                <FontAwesome5 name="futbol" size={28} color="#D4AF37" />
+              </View>
+            </View>
+          </Animated.View>
+        );
+
+      case 'discover':
+        return (
+          <Animated.View
+            style={[
+              styles.iconContainer,
+              {
+                transform: [{ scale: radarScale }],
+              },
+            ]}
+          >
+            <View style={styles.iconGlow}>
+              <MaterialCommunityIcons
+                name="radar"
+                size={96}
+                color="#D4AF37"
+              />
+            </View>
+          </Animated.View>
+        );
+
+      case 'welcome':
+      default:
+        return (
+          <Animated.View
+            style={[
+              styles.iconContainer,
+              {
+                transform: [
+                  { scale: ballScale },
+                  { translateY: ballTranslateY },
+                ],
+              },
+            ]}
+          >
+            <View style={styles.iconGlow}>
+              <MaterialCommunityIcons
+                name="soccer-field"
+                size={96}
+                color="#D4AF37"
+              />
             </View>
           </Animated.View>
         );
@@ -355,111 +274,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   figureWrapper: {
-    marginBottom: 32,
+    marginBottom: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // Welcome figure styles
-  ball: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#D4AF37',
+  iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
+    minHeight: 140,
+  },
+  iconGlow: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 8,
+    borderRadius: 999,
     shadowColor: '#D4AF37',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 12,
   },
-  ballInner: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#0A0A0A',
-    opacity: 0.3,
-  },
-  // Player figure styles
-  playerContainer: {
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    height: 80,
-    width: 60,
-    position: 'relative',
-  },
-  playerHead: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#D4AF37',
-    marginBottom: 4,
-  },
-  playerBody: {
-    width: 12,
-    height: 45,
-    backgroundColor: '#D4AF37',
-    borderRadius: 6,
-    marginBottom: 2,
-  },
-  playerBase: {
-    width: 30,
-    height: 4,
-    backgroundColor: '#D4AF37',
-    borderRadius: 2,
+  playerBallIcon: {
     position: 'absolute',
-    bottom: 0,
-  },
-  playerBall: {
-    position: 'absolute',
-    right: -8,
-    bottom: 2,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#D4AF37',
-  },
-  // Discover/Radar figure styles
-  radarContainer: {
-    width: 80,
-    height: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  radarOuter: {
-    position: 'absolute',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 1.5,
-    borderColor: '#D4AF37',
-    backgroundColor: 'transparent',
-  },
-  radarMiddle: {
-    position: 'absolute',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 1,
-    borderColor: '#D4AF37',
-    backgroundColor: 'transparent',
-  },
-  radarInner: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#D4AF37',
-    opacity: 0.6,
-  },
-  radarDot: {
-    position: 'absolute',
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#D4AF37',
-    top: 0,
-    left: 36,
+    right: -16,
+    bottom: -8,
   },
   textContainer: {
     maxWidth: '90%',
