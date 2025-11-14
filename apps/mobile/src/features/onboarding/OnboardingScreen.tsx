@@ -5,9 +5,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
+import { DES_LOGO } from '../../lib/branding';
 
 interface OnboardingScreenProps {
   onFinished: () => void;
@@ -15,7 +17,7 @@ interface OnboardingScreenProps {
 
 const slides = [
   {
-    title: 'Welcome to Draft Elite',
+    title: 'Welcome to Draft Elite Sport',
     body: 'Create your football profile and get seen by elite clubs and scouts.',
     figure: 'welcome',
   },
@@ -35,6 +37,7 @@ export default function OnboardingScreen({ onFinished }: OnboardingScreenProps) 
   const [index, setIndex] = useState(0);
   const currentSlide = slides[index];
   const isLastSlide = index === slides.length - 1;
+  const showWatermark = currentSlide.figure === 'welcome';
 
   // Animation for icons (bounce/pulse)
   const ballTranslateY = useRef(new Animated.Value(0)).current;
@@ -213,24 +216,35 @@ export default function OnboardingScreen({ onFinished }: OnboardingScreenProps) 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        {/* Animated figure */}
-        <View style={styles.figureWrapper}>
-          {renderFigure(currentSlide.figure)}
-        </View>
+        {showWatermark && (
+          <View style={styles.watermarkContainer}>
+            <Image
+              source={DES_LOGO}
+              style={styles.watermarkLogo}
+              resizeMode="contain"
+            />
+          </View>
+        )}
+        <View style={styles.foregroundContent}>
+          {/* Animated figure */}
+          <View style={styles.figureWrapper}>
+            {renderFigure(currentSlide.figure)}
+          </View>
 
-        {/* Animated slide content */}
-        <Animated.View
-          style={[
-            styles.textContainer,
-            {
-              opacity: slideOpacity,
-              transform: [{ translateX: slideTranslateX }],
-            },
-          ]}
-        >
-          <Text style={styles.title}>{currentSlide.title}</Text>
-          <Text style={styles.body}>{currentSlide.body}</Text>
-        </Animated.View>
+          {/* Animated slide content */}
+          <Animated.View
+            style={[
+              styles.textContainer,
+              {
+                opacity: slideOpacity,
+                transform: [{ translateX: slideTranslateX }],
+              },
+            ]}
+          >
+            <Text style={styles.title}>{currentSlide.title}</Text>
+            <Text style={styles.body}>{currentSlide.body}</Text>
+          </Animated.View>
+        </View>
       </View>
 
       <View style={styles.footer}>
@@ -268,6 +282,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#0A0A0A',
   },
   content: {
+    flex: 1,
+  },
+  watermarkContainer: {
+    position: 'absolute',
+    top: 80,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    pointerEvents: 'none',
+  },
+  watermarkLogo: {
+    width: 360,
+    height: 360,
+    opacity: 0.06,
+  },
+  foregroundContent: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
