@@ -1,15 +1,52 @@
+import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import { AuthProvider, useAuth } from './src/providers/AuthProvider';
 import LoginScreen from './src/features/auth/LoginScreen';
+import OnboardingScreen from './src/features/onboarding/OnboardingScreen';
+import {
+  hasSeenOnboarding,
+  setOnboardingSeen,
+} from './src/features/onboarding/onboardingStorage';
 
-function AppContent() {
+function RootContent() {
   const { user, loading } = useAuth();
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [hasSeenOnboardingState, setHasSeenOnboardingState] = useState(false);
+
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      const seen = await hasSeenOnboarding();
+      setHasSeenOnboardingState(seen);
+      setOnboardingChecked(true);
+    };
+
+    checkOnboarding();
+  }, []);
+
+  if (!onboardingChecked) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (!hasSeenOnboardingState) {
+    return (
+      <OnboardingScreen
+        onFinished={async () => {
+          await setOnboardingSeen();
+          setHasSeenOnboardingState(true);
+        }}
+      />
+    );
+  }
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <Text>Loading...</Text>
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
   }
@@ -29,7 +66,7 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <RootContent />
     </AuthProvider>
   );
 }
@@ -40,5 +77,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#0A0A0A',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    color: '#FFFFFF',
+    fontSize: 16,
   },
 });

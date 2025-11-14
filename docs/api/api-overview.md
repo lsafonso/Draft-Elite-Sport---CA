@@ -352,4 +352,5 @@ Exact policies will be defined in SQL migrations under `supabase/migrations`.
 
 * Gradually replace mock data in the app with real Supabase queries once the schema is stable.
 
+
 ---
