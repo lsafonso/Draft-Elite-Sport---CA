@@ -1,3 +1,27 @@
-# TODO: add ignores (node_modules, build outputs, env files, etc.)
-
+# Dependencies
 node_modules
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist
+build
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Expo
+.expo
+.expo-shared
+web-build
