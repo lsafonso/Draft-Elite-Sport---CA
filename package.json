@@ -1,2 +1,17 @@
-// TODO: root scripts and workspaces configuration
-
+{
+  "name": "draft-elite",
+  "private": true,
+  "workspaces": [
+    "apps/mobile",
+    "packages/ui",
+    "packages/api-client",
+    "packages/config"
+  ],
+  "scripts": {
+    "dev:mobile": "cd apps/mobile && echo 'TODO: expo start'",
+    "lint": "echo 'TODO: add lint command'",
+    "test": "echo 'TODO: add test command'"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

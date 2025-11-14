@@ -1,2 +1,8 @@
-// TODO: package config for shared UI
-
+{
+  "name": "@draft-elite/ui",
+  "version": "0.0.1",
+  "main": "src/index.ts",
+  "type": "module",
+  "dependencies": {},
+  "scripts": {}
+}

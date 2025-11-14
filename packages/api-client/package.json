@@ -1,2 +1,8 @@
-// TODO: package config for API client
-
+{
+  "name": "@draft-elite/api-client",
+  "version": "0.0.1",
+  "main": "src/index.ts",
+  "type": "module",
+  "dependencies": {},
+  "scripts": {}
+}
