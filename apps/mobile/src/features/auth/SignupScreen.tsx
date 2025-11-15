@@ -1,3 +1,7 @@
+// UNUSED: Legacy signup screen - replaced by PlayerSignupAccountScreen + PlayerProfileSetupScreen
+// This file is kept for reference but is no longer used in the auth flow.
+// The new flow is: Login → SelectAccountTypeScreen → PlayerSignupAccountScreen → PlayerProfileSetupScreen
+
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
