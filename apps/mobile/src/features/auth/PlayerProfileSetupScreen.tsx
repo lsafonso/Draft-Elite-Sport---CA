@@ -90,10 +90,7 @@ export default function PlayerProfileSetupScreen({
       isUnder18,
     };
 
-    // TODO: Save profile data to backend/Supabase
-    // For now, just log it and call the callback
-    console.log('Player profile data:', profileData);
-    
+    // Saving is handled in the parent via savePlayerProfile
     setLoading(true);
     
     // Simulate a brief delay for UX

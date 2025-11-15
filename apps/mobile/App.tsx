@@ -6,11 +6,18 @@ import LoginScreen from './src/features/auth/LoginScreen';
 import SelectAccountTypeScreen from './src/features/auth/SelectAccountTypeScreen';
 import PlayerSignupAccountScreen from './src/features/auth/PlayerSignupAccountScreen';
 import PlayerProfileSetupScreen from './src/features/auth/PlayerProfileSetupScreen';
+import SignupCompleteScreen from './src/features/auth/SignupCompleteScreen';
 import OnboardingScreen from './src/features/onboarding/OnboardingScreen';
 import {
   hasSeenOnboarding,
   setOnboardingSeen,
 } from './src/features/onboarding/onboardingStorage';
+import {
+  savePlayerProfile,
+  type AccountData,
+  type PlayerProfileData,
+} from './src/features/auth/savePlayerProfile';
+import { supabase } from './src/lib/supabaseClient';
 
 // Helper function to parse UK date format (DD/MM/YYYY)
 function parseUkDate(dateStr: string): Date | null {
@@ -76,8 +83,12 @@ function RootContent() {
   const { session, loading } = useAuth();
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [hasSeenOnboardingState, setHasSeenOnboardingState] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'selectAccountType' | 'playerSignupAccount' | 'playerProfileSetup'>('login');
-  const [accountData, setAccountData] = useState<{ fullName: string; dateOfBirth: string; email: string } | null>(null);
+  const [authMode, setAuthMode] = useState<'login' | 'selectAccountType' | 'playerSignupAccount' | 'playerProfileSetup' | 'signupComplete'>('login');
+  const [accountData, setAccountData] = useState<AccountData | null>(null);
+  const [signupCompleteInfo, setSignupCompleteInfo] = useState<{
+    fullName?: string;
+    isUnder18?: boolean;
+  } | null>(null);
 
   useEffect(() => {
     const checkOnboarding = async () => {
@@ -147,26 +158,61 @@ function RootContent() {
           fullName={accountData.fullName}
           dateOfBirth={accountData.dateOfBirth}
           isUnder18={isUnder18}
-          onProfileCompleted={(profileData) => {
-            // TODO: Save profile data to backend
-            console.log('Profile completed:', profileData);
+          onProfileCompleted={async (profileData) => {
+            // Get the current session from Supabase (may not be in AuthProvider state yet after signup)
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
             
-            // Show success message and return to login
-            Alert.alert(
-              'Signup Complete',
-              'Your account has been created! Please check your email to verify your address. Your profile will be reviewed by Draft Elite Sport staff before you can apply for trials.',
-              [
-                {
-                  text: 'OK',
-                  onPress: () => {
-                    setAuthMode('login');
-                    setAccountData(null);
-                  },
-                },
-              ]
-            );
+            if (!currentSession || !currentSession.user) {
+              Alert.alert('Error', 'You must be logged in to save your profile.');
+              return;
+            }
+
+            const userId = currentSession.user.id;
+
+            // Transform profile data to match PlayerProfileData type
+            const transformedProfile: PlayerProfileData = {
+              position: profileData.position,
+              location: profileData.location,
+              nationality: profileData.nationality,
+              clubName: profileData.clubName,
+              heightCm: profileData.height ? Number(profileData.height) : undefined,
+              weightKg: profileData.weight ? Number(profileData.weight) : undefined,
+              preferredFoot: profileData.preferredFoot.toLowerCase() as 'left' | 'right' | 'both',
+              highlightLink: profileData.highlightVideoLink,
+              isUnder18: profileData.isUnder18,
+            };
+
+            const { error } = await savePlayerProfile(userId, accountData, transformedProfile);
+
+            if (error) {
+              Alert.alert(
+                'Error',
+                'There was a problem saving your profile. Please try again.'
+              );
+              return;
+            }
+
+            // Set signup complete info and navigate to signup complete screen
+            setSignupCompleteInfo({
+              fullName: accountData.fullName,
+              isUnder18: profileData.isUnder18,
+            });
+            setAuthMode('signupComplete');
           }}
           onSwitchToLogin={() => setAuthMode('login')}
+        />
+      );
+    }
+    if (authMode === 'signupComplete') {
+      return (
+        <SignupCompleteScreen
+          fullName={signupCompleteInfo?.fullName}
+          isUnder18={signupCompleteInfo?.isUnder18}
+          onBackToLogin={() => {
+            setSignupCompleteInfo(null);
+            setAccountData(null);
+            setAuthMode('login');
+          }}
         />
       );
     }
