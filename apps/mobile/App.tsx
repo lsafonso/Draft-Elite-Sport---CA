@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import { AuthProvider, useAuth } from './src/providers/AuthProvider';
 import LoginScreen from './src/features/auth/LoginScreen';
+import SignupScreen from './src/features/auth/SignupScreen';
 import OnboardingScreen from './src/features/onboarding/OnboardingScreen';
 import {
   hasSeenOnboarding,
@@ -13,6 +14,7 @@ function RootContent() {
   const { user, loading } = useAuth();
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [hasSeenOnboardingState, setHasSeenOnboardingState] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
 
   useEffect(() => {
     const checkOnboarding = async () => {
@@ -52,7 +54,18 @@ function RootContent() {
   }
 
   if (!user) {
-    return <LoginScreen />;
+    if (authMode === 'signup') {
+      return (
+        <SignupScreen
+          onSwitchToLogin={() => setAuthMode('login')}
+        />
+      );
+    }
+    return (
+      <LoginScreen
+        onSwitchToSignup={() => setAuthMode('signup')}
+      />
+    );
   }
 
   return (

@@ -294,9 +294,9 @@ const styles = StyleSheet.create({
     pointerEvents: 'none',
   },
   watermarkLogo: {
-    width: 360,
-    height: 360,
-    opacity: 0.06,
+    width: 390,
+    height: 390,
+    opacity: 0.03,
   },
   foregroundContent: {
     flex: 1,

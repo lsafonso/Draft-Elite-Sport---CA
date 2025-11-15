@@ -4,7 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../providers/AuthProvider';
 import { DES_LOGO } from '../../lib/branding';
 
-export default function LoginScreen() {
+interface LoginScreenProps {
+  onSwitchToSignup?: () => void;
+}
+
+export default function LoginScreen({ onSwitchToSignup }: LoginScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +37,7 @@ export default function LoginScreen() {
         <Text style={styles.title}>Log in</Text>
 
         <Text style={styles.subtitle}>
-          Welcome back to Draft Elite Sport.
+          Welcome back to Draft Elite Sport
         </Text>
 
         <View style={styles.form}>
@@ -74,6 +78,13 @@ export default function LoginScreen() {
               {loading ? 'Logging in...' : 'Log in'}
             </Text>
           </TouchableOpacity>
+
+          <View style={styles.switchRow}>
+            <Text style={styles.switchText}>Don't have an account?</Text>
+            <TouchableOpacity onPress={onSwitchToSignup}>
+              <Text style={styles.switchLink}> Sign up</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -145,6 +156,21 @@ const styles = StyleSheet.create({
     color: '#FF6B6B',
     marginTop: 8,
     fontSize: 13,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  switchText: {
+    color: '#B3B3B3',
+    fontSize: 14,
+  },
+  switchLink: {
+    color: '#D4AF37',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 
