@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { DES_LOGO } from '../../lib/branding';
 
 interface PlayerSignupAccountScreenProps {
-  onAccountCreated: (data: { fullName: string; dateOfBirth: string; email: string }) => void;
+  onAccountCreated: (data: { fullName: string; dateOfBirth: string; email: string; userId: string }) => void;
   onSwitchToLogin?: () => void;
   onRequireParentAccount?: () => void;
 }
@@ -168,11 +168,19 @@ export default function PlayerSignupAccountScreen({
         return;
       }
 
+      const userId = data?.user?.id;
+      if (!userId) {
+        setError('There was a problem creating your account. Please try again.');
+        setLoading(false);
+        return;
+      }
+
       // Success - proceed to profile setup
       onAccountCreated({
         fullName: fullName.trim(),
         dateOfBirth: dateOfBirth.trim(),
         email: email.trim(),
+        userId,
       });
     } catch (err) {
       setError('An unexpected error occurred.');

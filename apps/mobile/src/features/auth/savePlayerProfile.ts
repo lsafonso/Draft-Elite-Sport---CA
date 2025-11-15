@@ -4,6 +4,7 @@ export type AccountData = {
   fullName: string;
   dateOfBirth: string; // DD/MM/YYYY
   email: string;
+  userId?: string;
 };
 
 export type PlayerProfileData = {

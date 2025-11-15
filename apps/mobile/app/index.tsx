@@ -16,7 +16,6 @@ import {
   type AccountData,
   type PlayerProfileData,
 } from '../src/features/auth/savePlayerProfile';
-import { supabase } from '../src/lib/supabaseClient';
 
 // Helper function to parse UK date format (DD/MM/YYYY)
 function parseUkDate(dateStr: string): Date | null {
@@ -158,15 +157,12 @@ export default function Index() {
           dateOfBirth={accountData.dateOfBirth}
           isUnder18={isUnder18}
           onProfileCompleted={async (profileData) => {
-            // Get the current session from Supabase (may not be in AuthProvider state yet after signup)
-            const { data: { session: currentSession } } = await supabase.auth.getSession();
-            
-            if (!currentSession || !currentSession.user) {
-              Alert.alert('Error', 'You must be logged in to save your profile.');
+            if (!accountData?.userId) {
+              Alert.alert('Error', 'There was a problem with your account details. Please try signing up again.');
               return;
             }
 
-            const userId = currentSession.user.id;
+            const userId = accountData.userId;
 
             // Transform profile data to match PlayerProfileData type
             const transformedProfile: PlayerProfileData = {
