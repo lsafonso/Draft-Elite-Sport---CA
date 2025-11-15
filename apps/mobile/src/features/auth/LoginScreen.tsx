@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'reac
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../providers/AuthProvider';
 import { DES_LOGO } from '../../lib/branding';
+import { supabase } from '../../lib/supabaseClient';
 
 interface LoginScreenProps {
   onSwitchToSignup?: () => void;
@@ -12,6 +13,7 @@ export default function LoginScreen({ onSwitchToSignup }: LoginScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isEmailFocused, setIsEmailFocused] = useState(false);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
@@ -19,6 +21,19 @@ export default function LoginScreen({ onSwitchToSignup }: LoginScreenProps) {
 
   const handleLogin = async () => {
     setError(null);
+    setSuccessMessage(null);
+
+    // Validation
+    if (!email.trim() || !password.trim()) {
+      setError('Email and password are required.');
+      return;
+    }
+
+    if (!email.includes('@')) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
     setLoading(true);
 
     const { error } = await signIn(email, password);
@@ -26,6 +41,24 @@ export default function LoginScreen({ onSwitchToSignup }: LoginScreenProps) {
     if (error) {
       setError(error.message);
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    setError(null);
+    setSuccessMessage(null);
+
+    if (!email.trim()) {
+      setError('Please enter your email first to reset your password.');
+      return;
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+
+    if (error) {
+      setError('Failed to send password reset email. Please try again.');
+    } else {
+      setSuccessMessage('If an account exists for this email, we\'ve sent a password reset link.');
     }
   };
 
@@ -37,7 +70,7 @@ export default function LoginScreen({ onSwitchToSignup }: LoginScreenProps) {
         <Text style={styles.title}>Log in</Text>
 
         <Text style={styles.subtitle}>
-          Welcome back to Draft Elite Sport
+          Welcome back to Draft Elite Sport.
         </Text>
 
         <View style={styles.form}>
@@ -67,7 +100,12 @@ export default function LoginScreen({ onSwitchToSignup }: LoginScreenProps) {
             autoComplete="password"
           />
 
+          <TouchableOpacity onPress={handleForgotPassword} style={styles.forgotPasswordContainer}>
+            <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+          </TouchableOpacity>
+
           {error && <Text style={styles.errorText}>{error}</Text>}
+          {successMessage && <Text style={styles.successText}>{successMessage}</Text>}
 
           <TouchableOpacity
             style={[styles.primaryButton, loading && styles.buttonDisabled]}
@@ -152,8 +190,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  forgotPasswordContainer: {
+    alignSelf: 'flex-end',
+    marginTop: -8,
+  },
+  forgotPasswordText: {
+    color: '#D4AF37',
+    fontSize: 14,
+    fontWeight: '500',
+  },
   errorText: {
     color: '#FF6B6B',
+    marginTop: 8,
+    fontSize: 13,
+  },
+  successText: {
+    color: '#66CC99',
     marginTop: 8,
     fontSize: 13,
   },

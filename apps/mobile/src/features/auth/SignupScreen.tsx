@@ -27,17 +27,17 @@ export default function SignupScreen({ onSwitchToLogin }: SignupScreenProps) {
 
     // Validation
     if (!email || !password) {
-      setError('Email and password are required');
+      setError('Email and password are required.');
       return;
     }
 
     if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError('Password must be at least 8 characters.');
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('Passwords do not match.');
       return;
     }
 
@@ -56,13 +56,15 @@ export default function SignupScreen({ onSwitchToLogin }: SignupScreenProps) {
       }
 
       // Success
-      setSuccessMessage('Sign up successful. Please check your email to verify your account, then log in.');
+      setSuccessMessage('Account created. Please check your email to verify your address. Your profile will be reviewed by Draft Elite Sport staff before you can apply for trials.');
       setError(null);
+      setEmail('');
+      setFullName('');
       setPassword('');
       setConfirmPassword('');
       setLoading(false);
     } catch (err) {
-      setError('An unexpected error occurred');
+      setError('An unexpected error occurred.');
       setLoading(false);
     }
   };
