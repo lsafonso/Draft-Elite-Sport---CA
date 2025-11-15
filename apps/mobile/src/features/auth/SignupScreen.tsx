@@ -70,7 +70,7 @@ export default function SignupScreen({ onSwitchToLogin }: SignupScreenProps) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Image source={DES_LOGO.default} style={styles.logo} resizeMode="contain" />
+        <Image source={DES_LOGO} style={styles.logo} resizeMode="contain" />
 
         <Text style={styles.title}>Sign up</Text>
 

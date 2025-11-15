@@ -32,7 +32,7 @@ export default function LoginScreen({ onSwitchToSignup }: LoginScreenProps) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Image source={DES_LOGO.default} style={styles.logo} resizeMode="contain" />
+        <Image source={DES_LOGO} style={styles.logo} resizeMode="contain" />
 
         <Text style={styles.title}>Log in</Text>
 
