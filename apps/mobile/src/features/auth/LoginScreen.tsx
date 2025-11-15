@@ -56,7 +56,7 @@ export default function LoginScreen({ onSwitchToSignup }: LoginScreenProps) {
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
 
     if (error) {
-      setError('Failed to send password reset email. Please try again.');
+      setError('Something went wrong while sending the reset email. Please try again.');
     } else {
       setSuccessMessage('If an account exists for this email, we\'ve sent a password reset link.');
     }
@@ -65,6 +65,14 @@ export default function LoginScreen({ onSwitchToSignup }: LoginScreenProps) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
+        <View style={styles.watermarkContainer}>
+          <Image
+            source={DES_LOGO}
+            style={styles.watermarkLogo}
+            resizeMode="contain"
+          />
+        </View>
+
         <Image source={DES_LOGO} style={styles.logo} resizeMode="contain" />
 
         <Text style={styles.title}>Log in</Text>
@@ -138,6 +146,20 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 48,
+  },
+  watermarkContainer: {
+    position: 'absolute',
+    top: 80,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    pointerEvents: 'none',
+  },
+  watermarkLogo: {
+    width: 390,
+    height: 390,
+    opacity: 0.03,
   },
   logo: {
     width: 120,

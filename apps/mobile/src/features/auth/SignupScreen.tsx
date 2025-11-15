@@ -72,6 +72,14 @@ export default function SignupScreen({ onSwitchToLogin }: SignupScreenProps) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
+        <View style={styles.watermarkContainer}>
+          <Image
+            source={DES_LOGO}
+            style={styles.watermarkLogo}
+            resizeMode="contain"
+          />
+        </View>
+
         <Image source={DES_LOGO} style={styles.logo} resizeMode="contain" />
 
         <Text style={styles.title}>Sign up</Text>
@@ -167,6 +175,20 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 48,
+  },
+  watermarkContainer: {
+    position: 'absolute',
+    top: 80,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    pointerEvents: 'none',
+  },
+  watermarkLogo: {
+    width: 390,
+    height: 390,
+    opacity: 0.03,
   },
   logo: {
     width: 120,
