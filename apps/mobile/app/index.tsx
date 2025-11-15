@@ -105,6 +105,9 @@ export default function Index() {
             setAuthMode('playerProfileSetup');
           }}
           onSwitchToLogin={() => setAuthMode('login')}
+          onRequireParentAccount={() => {
+            setAuthMode('selectAccountType');
+          }}
         />
       );
     }

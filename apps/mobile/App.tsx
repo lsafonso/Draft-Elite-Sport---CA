@@ -106,6 +106,9 @@ function RootContent() {
             setAuthMode('playerProfileSetup');
           }}
           onSwitchToLogin={() => setAuthMode('login')}
+          onRequireParentAccount={() => {
+            setAuthMode('selectAccountType');
+          }}
         />
       );
     }

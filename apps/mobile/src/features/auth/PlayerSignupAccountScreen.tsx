@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabaseClient';
 import { DES_LOGO } from '../../lib/branding';
@@ -7,11 +7,50 @@ import { DES_LOGO } from '../../lib/branding';
 interface PlayerSignupAccountScreenProps {
   onAccountCreated: (data: { fullName: string; dateOfBirth: string; email: string }) => void;
   onSwitchToLogin?: () => void;
+  onRequireParentAccount?: () => void;
+}
+
+// Helper function to calculate if user is under 18
+function calculateIsUnder18(dateOfBirth: string): boolean {
+  try {
+    // Parse date of birth (expected format: YYYY-MM-DD)
+    const dobParts = dateOfBirth.split('-');
+    if (dobParts.length !== 3) {
+      return false; // Invalid format, default to false
+    }
+
+    const dobYear = parseInt(dobParts[0], 10);
+    const dobMonth = parseInt(dobParts[1], 10);
+    const dobDay = parseInt(dobParts[2], 10);
+
+    if (isNaN(dobYear) || isNaN(dobMonth) || isNaN(dobDay)) {
+      return false; // Invalid date, default to false
+    }
+
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth() + 1; // getMonth() returns 0-11
+    const currentDay = today.getDate();
+
+    // Calculate age
+    let age = currentYear - dobYear;
+
+    // Adjust if birthday hasn't occurred this year
+    if (currentMonth < dobMonth || (currentMonth === dobMonth && currentDay < dobDay)) {
+      age--;
+    }
+
+    return age < 18;
+  } catch (error) {
+    // If parsing fails, default to false
+    return false;
+  }
 }
 
 export default function PlayerSignupAccountScreen({
   onAccountCreated,
   onSwitchToLogin,
+  onRequireParentAccount,
 }: PlayerSignupAccountScreenProps) {
   const [fullName, setFullName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
@@ -62,6 +101,26 @@ export default function PlayerSignupAccountScreen({
 
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
+      return;
+    }
+
+    // Check if user is under 18 before proceeding with signup
+    const isUnder18 = calculateIsUnder18(dateOfBirth.trim());
+    if (isUnder18) {
+      Alert.alert(
+        'Parent Account Required',
+        'Because you are under 18, your parent or guardian must create the account. Please go back and choose "Parent/Guardian" as the account type.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              if (onRequireParentAccount) {
+                onRequireParentAccount();
+              }
+            },
+          },
+        ]
+      );
       return;
     }
 
