@@ -79,14 +79,14 @@ export default function SignupScreen({ onSwitchToLogin }: SignupScreenProps) {
             resizeMode="contain"
           />
         </View>
+        <View style={styles.foregroundContent}>
+          <Image source={DES_LOGO} style={styles.logo} resizeMode="contain" />
 
-        <Image source={DES_LOGO} style={styles.logo} resizeMode="contain" />
+          <Text style={styles.title}>Sign up</Text>
 
-        <Text style={styles.title}>Sign up</Text>
+          <Text style={styles.subtitle}>Create your Draft Elite Sport account.</Text>
 
-        <Text style={styles.subtitle}>Create your Draft Elite Sport account.</Text>
-
-        <View style={styles.form}>
+          <View style={styles.form}>
           <TextInput
             style={[styles.input, isFullNameFocused && styles.inputFocused]}
             placeholder="Full name (optional)"
@@ -161,6 +161,7 @@ export default function SignupScreen({ onSwitchToLogin }: SignupScreenProps) {
             </TouchableOpacity>
           </View>
         </View>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -173,8 +174,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 48,
+    position: 'relative',
   },
   watermarkContainer: {
     position: 'absolute',
@@ -190,12 +190,18 @@ const styles = StyleSheet.create({
     height: 390,
     opacity: 0.03,
   },
+  foregroundContent: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 48,
+    zIndex: 1,
+  },
   logo: {
     width: 120,
-    height: 40,
+    height: 90,
     marginBottom: 32,
     alignSelf: 'center',
-    opacity: 0.85,
+    opacity: 0.02,
   },
   title: {
     fontSize: 28,

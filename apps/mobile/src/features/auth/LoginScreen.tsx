@@ -72,16 +72,16 @@ export default function LoginScreen({ onSwitchToSignup }: LoginScreenProps) {
             resizeMode="contain"
           />
         </View>
+        <View style={styles.foregroundContent}>
+          <Image source={DES_LOGO} style={styles.logo} resizeMode="contain" />
 
-        <Image source={DES_LOGO} style={styles.logo} resizeMode="contain" />
+          <Text style={styles.title}>Log in</Text>
 
-        <Text style={styles.title}>Log in</Text>
+          <Text style={styles.subtitle}>
+            Welcome back to Draft Elite Sport.
+          </Text>
 
-        <Text style={styles.subtitle}>
-          Welcome back to Draft Elite Sport.
-        </Text>
-
-        <View style={styles.form}>
+          <View style={styles.form}>
           <TextInput
             style={[styles.input, isEmailFocused && styles.inputFocused]}
             placeholder="Email"
@@ -132,6 +132,7 @@ export default function LoginScreen({ onSwitchToSignup }: LoginScreenProps) {
             </TouchableOpacity>
           </View>
         </View>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -144,8 +145,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 48,
+    position: 'relative',
   },
   watermarkContainer: {
     position: 'absolute',
@@ -161,12 +161,18 @@ const styles = StyleSheet.create({
     height: 390,
     opacity: 0.03,
   },
+  foregroundContent: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 48,
+    zIndex: 1,
+  },
   logo: {
     width: 120,
-    height: 40,
+    height: 90,
     marginBottom: 32,
     alignSelf: 'center',
-    opacity: 0.85,
+    opacity: 0.02,
   },
   title: {
     fontSize: 28,
