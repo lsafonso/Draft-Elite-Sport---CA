@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 16,
-    letterSpacing: 0.6,
+    letterSpacing: 0.4,
   },
   body: {
     fontSize: 16,
