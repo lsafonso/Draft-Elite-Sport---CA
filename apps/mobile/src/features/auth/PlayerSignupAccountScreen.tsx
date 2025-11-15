@@ -10,27 +10,50 @@ interface PlayerSignupAccountScreenProps {
   onRequireParentAccount?: () => void;
 }
 
+// Helper function to parse UK date format (DD/MM/YYYY)
+function parseUkDate(dateStr: string): Date | null {
+  // Expect "DD/MM/YYYY"
+  const parts = dateStr.split('/');
+  if (parts.length !== 3) return null;
+
+  const [dayStr, monthStr, yearStr] = parts.map(p => p.trim());
+  const day = Number(dayStr);
+  const month = Number(monthStr);
+  const year = Number(yearStr);
+
+  if (!day || !month || !year) return null;
+
+  const d = new Date(year, month - 1, day);
+
+  // Basic sanity check so 32/13/0000 doesn't pass silently
+  if (
+    d.getFullYear() !== year ||
+    d.getMonth() !== month - 1 ||
+    d.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return d;
+}
+
 // Helper function to calculate if user is under 18
 function calculateIsUnder18(dateOfBirth: string): boolean {
   try {
-    // Parse date of birth (expected format: YYYY-MM-DD)
-    const dobParts = dateOfBirth.split('-');
-    if (dobParts.length !== 3) {
+    // Parse date of birth (expected format: DD/MM/YYYY)
+    const dobDate = parseUkDate(dateOfBirth);
+    if (!dobDate) {
       return false; // Invalid format, default to false
-    }
-
-    const dobYear = parseInt(dobParts[0], 10);
-    const dobMonth = parseInt(dobParts[1], 10);
-    const dobDay = parseInt(dobParts[2], 10);
-
-    if (isNaN(dobYear) || isNaN(dobMonth) || isNaN(dobDay)) {
-      return false; // Invalid date, default to false
     }
 
     const today = new Date();
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth() + 1; // getMonth() returns 0-11
     const currentDay = today.getDate();
+
+    const dobYear = dobDate.getFullYear();
+    const dobMonth = dobDate.getMonth() + 1;
+    const dobDay = dobDate.getDate();
 
     // Calculate age
     let age = currentYear - dobYear;
@@ -76,6 +99,13 @@ export default function PlayerSignupAccountScreen({
 
     if (!dateOfBirth.trim()) {
       setError('Date of birth is required.');
+      return;
+    }
+
+    // Validate UK date format (DD/MM/YYYY)
+    const parsedDate = parseUkDate(dateOfBirth.trim());
+    if (!parsedDate) {
+      setError('Please enter your date of birth in DD/MM/YYYY format.');
       return;
     }
 
@@ -184,7 +214,7 @@ export default function PlayerSignupAccountScreen({
 
             <TextInput
               style={[styles.input, isDateOfBirthFocused && styles.inputFocused]}
-              placeholder="Date of Birth (YYYY-MM-DD)"
+              placeholder="e.g. 31/12/2010"
               placeholderTextColor="#777777"
               value={dateOfBirth}
               onChangeText={setDateOfBirth}
