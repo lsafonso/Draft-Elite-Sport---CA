@@ -17,11 +17,16 @@ export default function LoginScreen({ onSwitchToSignup }: LoginScreenProps) {
   const [loading, setLoading] = useState(false);
   const [isEmailFocused, setIsEmailFocused] = useState(false);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
+  const [canResendVerification, setCanResendVerification] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
   const { signIn } = useAuth();
 
   const handleLogin = async () => {
     setError(null);
     setSuccessMessage(null);
+    setCanResendVerification(false);
+    setResendMessage(null);
 
     // Validation
     if (!email.trim() || !password.trim()) {
@@ -39,7 +44,21 @@ export default function LoginScreen({ onSwitchToSignup }: LoginScreenProps) {
     const { error } = await signIn(email, password);
 
     if (error) {
-      setError(error.message);
+      // Check if error indicates email not confirmed
+      const errorMessage = error.message.toLowerCase();
+      if (errorMessage.includes('email not confirmed') || errorMessage.includes('email_not_confirmed')) {
+        setError('Email not confirmed.');
+        setCanResendVerification(true);
+        setResendMessage(null);
+      } else {
+        setError(error.message);
+        setCanResendVerification(false);
+      }
+      setLoading(false);
+    } else {
+      // Login successful - reset resend state
+      setCanResendVerification(false);
+      setResendMessage(null);
       setLoading(false);
     }
   };
@@ -59,6 +78,30 @@ export default function LoginScreen({ onSwitchToSignup }: LoginScreenProps) {
       setError('Something went wrong while sending the reset email. Please try again.');
     } else {
       setSuccessMessage('If an account exists for this email, we\'ve sent a password reset link.');
+    }
+  };
+
+  const handleResendVerification = async () => {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setError('Please enter your email address before resending the link.');
+      return;
+    }
+    setIsResending(true);
+    setResendMessage(null);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: trimmedEmail,
+      });
+      if (error) {
+        setResendMessage('There was a problem resending the link. Please try again.');
+        console.error('resend verification error', error);
+      } else {
+        setResendMessage('A new verification link has been sent to your email.');
+      }
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -113,6 +156,21 @@ export default function LoginScreen({ onSwitchToSignup }: LoginScreenProps) {
           </TouchableOpacity>
 
           {error && <Text style={styles.errorText}>{error}</Text>}
+          {canResendVerification && (
+            <View style={{ marginTop: 8 }}>
+              <TouchableOpacity
+                onPress={handleResendVerification}
+                disabled={isResending}
+              >
+                <Text style={styles.resendLink}>
+                  {isResending ? 'Resending link…' : 'Resend verification email'}
+                </Text>
+              </TouchableOpacity>
+              {!!resendMessage && (
+                <Text style={styles.resendMessage}>{resendMessage}</Text>
+              )}
+            </View>
+          )}
           {successMessage && <Text style={styles.successText}>{successMessage}</Text>}
 
           <TouchableOpacity
@@ -251,6 +309,16 @@ const styles = StyleSheet.create({
     color: '#D4AF37',
     fontSize: 14,
     fontWeight: '600',
+  },
+  resendLink: {
+    color: '#D4AF37',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  resendMessage: {
+    color: '#B3B3B3',
+    fontSize: 13,
+    marginTop: 4,
   },
 });
 

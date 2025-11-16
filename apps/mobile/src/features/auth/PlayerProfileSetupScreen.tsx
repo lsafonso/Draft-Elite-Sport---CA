@@ -295,12 +295,14 @@ export default function PlayerProfileSetupScreen({
                 )}
               </TouchableOpacity>
 
-              <View style={styles.switchRow}>
-                <Text style={styles.switchText}>Already have an account?</Text>
-                <TouchableOpacity onPress={onSwitchToLogin}>
-                  <Text style={styles.switchLink}> Log in</Text>
-                </TouchableOpacity>
-              </View>
+              {onSwitchToLogin && (
+                <View style={styles.switchRow}>
+                  <Text style={styles.switchText}>Already have an account?</Text>
+                  <TouchableOpacity onPress={onSwitchToLogin}>
+                    <Text style={styles.switchLink}> Log in</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </View>
         </View>

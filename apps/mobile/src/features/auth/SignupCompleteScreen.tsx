@@ -5,13 +5,11 @@ import { DES_LOGO } from '../../lib/branding';
 
 type SignupCompleteScreenProps = {
   fullName?: string;
-  isUnder18?: boolean;
   onBackToLogin: () => void;
 };
 
 export default function SignupCompleteScreen({
   fullName,
-  isUnder18,
   onBackToLogin,
 }: SignupCompleteScreenProps) {
   // Compute firstName from fullName (split on space, take first) and fallback to "Thanks" if not provided
@@ -34,16 +32,11 @@ export default function SignupCompleteScreen({
 
           <View style={styles.body}>
             <Text style={styles.bodyText}>
-              Your Draft Elite Sport profile has been created.
+              Your Draft Elite Sport account has been created.
             </Text>
             <Text style={styles.bodyText}>
-              Our staff will review your details before you can apply for trials.
+              Please check your email to verify your address, then log in to continue.
             </Text>
-            {isUnder18 && (
-              <Text style={styles.under18Text}>
-                Because you are under 18, some trials may also require a parent or guardian to be present.
-              </Text>
-            )}
           </View>
 
           <TouchableOpacity
@@ -52,10 +45,6 @@ export default function SignupCompleteScreen({
           >
             <Text style={styles.primaryButtonText}>Back to login</Text>
           </TouchableOpacity>
-
-          <Text style={styles.helperText}>
-            You can update your details later from your profile.
-          </Text>
         </View>
       </View>
     </SafeAreaView>
@@ -114,12 +103,6 @@ const styles = StyleSheet.create({
     color: '#B3B3B3',
     lineHeight: 20,
   },
-  under18Text: {
-    fontSize: 13,
-    color: '#D4AF37',
-    lineHeight: 18,
-    marginTop: 8,
-  },
   primaryButton: {
     marginTop: 16,
     height: 50,
@@ -132,12 +115,6 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontSize: 16,
     fontWeight: '600',
-  },
-  helperText: {
-    color: '#777777',
-    fontSize: 12,
-    textAlign: 'center',
-    marginTop: 24,
   },
 });
 

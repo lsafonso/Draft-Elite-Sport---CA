@@ -1,93 +1,36 @@
 import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, ActivityIndicator, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/providers/AuthProvider';
 import LoginScreen from './src/features/auth/LoginScreen';
 import SelectAccountTypeScreen from './src/features/auth/SelectAccountTypeScreen';
 import PlayerSignupAccountScreen from './src/features/auth/PlayerSignupAccountScreen';
-import PlayerProfileSetupScreen from './src/features/auth/PlayerProfileSetupScreen';
 import SignupCompleteScreen from './src/features/auth/SignupCompleteScreen';
+import PlayerProfileSetupScreen from './src/features/auth/PlayerProfileSetupScreen';
 import OnboardingScreen from './src/features/onboarding/OnboardingScreen';
 import {
   hasSeenOnboarding,
   setOnboardingSeen,
 } from './src/features/onboarding/onboardingStorage';
+import { supabase } from './src/lib/supabaseClient';
 import {
   savePlayerProfile,
   type AccountData,
   type PlayerProfileData,
 } from './src/features/auth/savePlayerProfile';
 
-// Helper function to parse UK date format (DD/MM/YYYY)
-function parseUkDate(dateStr: string): Date | null {
-  // Expect "DD/MM/YYYY"
-  const parts = dateStr.split('/');
-  if (parts.length !== 3) return null;
-
-  const [dayStr, monthStr, yearStr] = parts.map(p => p.trim());
-  const day = Number(dayStr);
-  const month = Number(monthStr);
-  const year = Number(yearStr);
-
-  if (!day || !month || !year) return null;
-
-  const d = new Date(year, month - 1, day);
-
-  // Basic sanity check so 32/13/0000 doesn't pass silently
-  if (
-    d.getFullYear() !== year ||
-    d.getMonth() !== month - 1 ||
-    d.getDate() !== day
-  ) {
-    return null;
-  }
-
-  return d;
-}
-
-// Helper function to calculate if user is under 18
-function calculateIsUnder18(dateOfBirth: string): boolean {
-  try {
-    // Parse date of birth (expected format: DD/MM/YYYY)
-    const dobDate = parseUkDate(dateOfBirth);
-    if (!dobDate) {
-      return false; // Invalid format, default to false
-    }
-
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth() + 1; // getMonth() returns 0-11
-    const currentDay = today.getDate();
-
-    const dobYear = dobDate.getFullYear();
-    const dobMonth = dobDate.getMonth() + 1;
-    const dobDay = dobDate.getDate();
-
-    // Calculate age
-    let age = currentYear - dobYear;
-
-    // Adjust if birthday hasn't occurred this year
-    if (currentMonth < dobMonth || (currentMonth === dobMonth && currentDay < dobDay)) {
-      age--;
-    }
-
-    return age < 18;
-  } catch (error) {
-    // If parsing fails, default to false
-    return false;
-  }
-}
 
 function RootContent() {
   const { session, loading } = useAuth();
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [hasSeenOnboardingState, setHasSeenOnboardingState] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'selectAccountType' | 'playerSignupAccount' | 'playerProfileSetup' | 'signupComplete'>('login');
-  const [accountData, setAccountData] = useState<AccountData | null>(null);
+  const [authMode, setAuthMode] = useState<'login' | 'selectAccountType' | 'playerSignupAccount' | 'signupComplete'>('login');
   const [signupCompleteInfo, setSignupCompleteInfo] = useState<{
     fullName?: string;
-    isUnder18?: boolean;
   } | null>(null);
+  const [profileStatus, setProfileStatus] = useState<'idle' | 'loading' | 'needsProfile' | 'hasProfile'>('idle');
+  const [accountFromSession, setAccountFromSession] = useState<AccountData | null>(null);
 
   useEffect(() => {
     const checkOnboarding = async () => {
@@ -98,6 +41,46 @@ function RootContent() {
 
     checkOnboarding();
   }, []);
+
+  useEffect(() => {
+    if (!session) {
+      setProfileStatus('idle');
+      setAccountFromSession(null);
+      return;
+    }
+
+    const loadProfile = async () => {
+      setProfileStatus('loading');
+      const user = session.user;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        // PGRST116 = no rows, everything else is a real error
+        console.error('loadProfile error', error);
+        setProfileStatus('needsProfile');
+        return;
+      }
+
+      if (!data) {
+        // No profile yet → show setup
+        const meta = user.user_metadata || {};
+        setAccountFromSession({
+          fullName: meta.full_name || user.email || '',
+          dateOfBirth: meta.date_of_birth || '',
+          email: user.email || '',
+        });
+        setProfileStatus('needsProfile');
+      } else {
+        setProfileStatus('hasProfile');
+      }
+    };
+
+    loadProfile();
+  }, [session]);
 
   if (loading || !onboardingChecked) {
     return (
@@ -134,9 +117,11 @@ function RootContent() {
     if (authMode === 'playerSignupAccount') {
       return (
         <PlayerSignupAccountScreen
-          onAccountCreated={(data) => {
-            setAccountData(data);
-            setAuthMode('playerProfileSetup');
+          onSignupComplete={(data) => {
+            setSignupCompleteInfo({
+              fullName: data.fullName,
+            });
+            setAuthMode('signupComplete');
           }}
           onSwitchToLogin={() => setAuthMode('login')}
           onRequireParentAccount={() => {
@@ -145,25 +130,41 @@ function RootContent() {
         />
       );
     }
-    if (authMode === 'playerProfileSetup') {
-      if (!accountData) {
-        // Fallback if accountData is missing
-        setAuthMode('login');
-        return null;
-      }
-      const isUnder18 = calculateIsUnder18(accountData.dateOfBirth);
+    if (authMode === 'signupComplete') {
+      return (
+        <SignupCompleteScreen
+          fullName={signupCompleteInfo?.fullName}
+          onBackToLogin={() => {
+            setSignupCompleteInfo(null);
+            setAuthMode('login');
+          }}
+        />
+      );
+    }
+    return (
+      <LoginScreen
+        onSwitchToSignup={() => setAuthMode('selectAccountType')}
+      />
+    );
+  }
+
+  if (session) {
+    if (profileStatus === 'loading' || profileStatus === 'idle') {
+      return (
+        <SafeAreaView style={styles.centered}>
+          <ActivityIndicator size="large" color="#D4AF37" />
+        </SafeAreaView>
+      );
+    }
+
+    if (profileStatus === 'needsProfile' && accountFromSession) {
       return (
         <PlayerProfileSetupScreen
-          fullName={accountData.fullName}
-          dateOfBirth={accountData.dateOfBirth}
-          isUnder18={isUnder18}
+          fullName={accountFromSession.fullName}
+          dateOfBirth={accountFromSession.dateOfBirth}
+          isUnder18={Boolean(session.user.user_metadata?.is_under_18)}
           onProfileCompleted={async (profileData) => {
-            if (!accountData?.userId) {
-              Alert.alert('Error', 'There was a problem with your account details. Please try signing up again.');
-              return;
-            }
-
-            const userId = accountData.userId;
+            const userId = session.user.id;
 
             // Transform profile data to match PlayerProfileData type
             const transformedProfile: PlayerProfileData = {
@@ -178,7 +179,7 @@ function RootContent() {
               isUnder18: profileData.isUnder18,
             };
 
-            const { error } = await savePlayerProfile(userId, accountData, transformedProfile);
+            const { error } = await savePlayerProfile(userId, accountFromSession, transformedProfile);
 
             if (error) {
               Alert.alert(
@@ -190,43 +191,22 @@ function RootContent() {
               return;
             }
 
-            // Set signup complete info and navigate to signup complete screen
-            setSignupCompleteInfo({
-              fullName: accountData.fullName,
-              isUnder18: profileData.isUnder18,
-            });
-            setAuthMode('signupComplete');
-          }}
-          onSwitchToLogin={() => setAuthMode('login')}
-        />
-      );
-    }
-    if (authMode === 'signupComplete') {
-      return (
-        <SignupCompleteScreen
-          fullName={signupCompleteInfo?.fullName}
-          isUnder18={signupCompleteInfo?.isUnder18}
-          onBackToLogin={() => {
-            setSignupCompleteInfo(null);
-            setAccountData(null);
-            setAuthMode('login');
+            setProfileStatus('hasProfile');
           }}
         />
       );
     }
+
+    // If we reach here, profile exists → show your real home / placeholder
     return (
-      <LoginScreen
-        onSwitchToSignup={() => setAuthMode('selectAccountType')}
-      />
+      <SafeAreaView style={styles.centered}>
+        <Text style={styles.homeTitle}>Home placeholder</Text>
+        <StatusBar style="auto" />
+      </SafeAreaView>
     );
   }
 
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+  return null;
 }
 
 export default function App() {
@@ -253,5 +233,15 @@ const styles = StyleSheet.create({
   loadingText: {
     color: '#FFFFFF',
     fontSize: 16,
+  },
+  centered: {
+    flex: 1,
+    backgroundColor: '#0A0A0A',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  homeTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
   },
 });

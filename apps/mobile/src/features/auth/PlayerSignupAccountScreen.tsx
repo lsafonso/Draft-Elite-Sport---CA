@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { DES_LOGO } from '../../lib/branding';
 
 interface PlayerSignupAccountScreenProps {
-  onAccountCreated: (data: { fullName: string; dateOfBirth: string; email: string; userId: string }) => void;
+  onSignupComplete: (data: { fullName: string }) => void;
   onSwitchToLogin?: () => void;
   onRequireParentAccount?: () => void;
 }
@@ -71,7 +71,7 @@ function calculateIsUnder18(dateOfBirth: string): boolean {
 }
 
 export default function PlayerSignupAccountScreen({
-  onAccountCreated,
+  onSignupComplete,
   onSwitchToLogin,
   onRequireParentAccount,
 }: PlayerSignupAccountScreenProps) {
@@ -157,9 +157,23 @@ export default function PlayerSignupAccountScreen({
     setLoading(true);
 
     try {
+      const trimmedEmail = email.trim();
+      const trimmedPassword = password;
+      const trimmedFullName = fullName.trim();
+      const trimmedDateOfBirth = dateOfBirth.trim();
+
       const { data, error: signUpError } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
+        email: trimmedEmail,
+        password: trimmedPassword,
+        options: {
+          data: {
+            full_name: trimmedFullName,
+            date_of_birth: trimmedDateOfBirth, // DD/MM/YYYY
+            role: 'player',
+            is_under_18: calculateIsUnder18(trimmedDateOfBirth),
+            account_type: 'player',
+          },
+        },
       });
 
       if (signUpError) {
@@ -168,19 +182,15 @@ export default function PlayerSignupAccountScreen({
         return;
       }
 
-      const userId = data?.user?.id;
-      if (!userId) {
+      if (!data?.user) {
         setError('There was a problem creating your account. Please try again.');
         setLoading(false);
         return;
       }
 
-      // Success - proceed to profile setup
-      onAccountCreated({
-        fullName: fullName.trim(),
-        dateOfBirth: dateOfBirth.trim(),
-        email: email.trim(),
-        userId,
+      // Success - go to signup complete screen
+      onSignupComplete({
+        fullName: trimmedFullName,
       });
     } catch (err) {
       setError('An unexpected error occurred.');
@@ -204,7 +214,7 @@ export default function PlayerSignupAccountScreen({
           <Text style={styles.title}>Create your account</Text>
 
           <Text style={styles.subtitle}>
-            Step 1 of 2. We need a few details to create your Draft Elite Sport account.
+            We need a few details to create your Draft Elite Sport account.
           </Text>
 
           <View style={styles.form}>
