@@ -15,8 +15,10 @@ export default function SelectAccountTypeScreen({
   const handleSelectAccountType = (accountType: 'player' | 'parent' | 'coach' | 'scout') => {
     if (accountType === 'player') {
       onSelectAccountType('player');
+    } else if (accountType === 'parent') {
+      onSelectAccountType('parent');
     } else {
-      // Show TODO alert for non-player account types
+      // Show TODO alert for coach/scout account types
       Alert.alert(
         'Coming Soon',
         `${accountType.charAt(0).toUpperCase() + accountType.slice(1)} account creation is not yet available.`,

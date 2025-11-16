@@ -6,8 +6,10 @@ import OnboardingScreen from '../src/features/onboarding/OnboardingScreen';
 import LoginScreen from '../src/features/auth/LoginScreen';
 import SelectAccountTypeScreen from '../src/features/auth/SelectAccountTypeScreen';
 import PlayerSignupAccountScreen from '../src/features/auth/PlayerSignupAccountScreen';
+import ParentSignupAccountScreen from '../src/features/auth/ParentSignupAccountScreen';
 import SignupCompleteScreen from '../src/features/auth/SignupCompleteScreen';
 import PlayerProfileSetupScreen from '../src/features/auth/PlayerProfileSetupScreen';
+import ChildProfileSetupScreen from '../src/features/auth/ChildProfileSetupScreen';
 import {
   hasSeenOnboarding,
   setOnboardingSeen,
@@ -18,18 +20,20 @@ import {
   type AccountData,
   type PlayerProfileData,
 } from '../src/features/auth/savePlayerProfile';
+import { saveChildProfile } from '../src/features/auth/saveChildProfile';
 
 
 export default function Index() {
   const { session } = useAuth();
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const [checkingOnboarding, setCheckingOnboarding] = useState(true);
-  const [authMode, setAuthMode] = useState<'login' | 'selectAccountType' | 'playerSignupAccount' | 'signupComplete'>('login');
+  const [authMode, setAuthMode] = useState<'login' | 'selectAccountType' | 'playerSignupAccount' | 'parentSignupAccount' | 'signupComplete'>('login');
   const [signupCompleteInfo, setSignupCompleteInfo] = useState<{
     fullName?: string;
   } | null>(null);
   const [profileStatus, setProfileStatus] = useState<'idle' | 'loading' | 'needsProfile' | 'hasProfile'>('idle');
   const [accountFromSession, setAccountFromSession] = useState<AccountData | null>(null);
+  const [userRole, setUserRole] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const checkOnboarding = async () => {
@@ -45,12 +49,17 @@ export default function Index() {
     if (!session) {
       setProfileStatus('idle');
       setAccountFromSession(null);
+      setUserRole(undefined);
       return;
     }
 
     const loadProfile = async () => {
       setProfileStatus('loading');
       const user = session.user;
+      const meta = user.user_metadata || {};
+      const role = meta.role as string | undefined;
+      setUserRole(role);
+
       const { data, error } = await supabase
         .from('profiles')
         .select('id')
@@ -66,7 +75,6 @@ export default function Index() {
 
       if (!data) {
         // No profile yet → show setup
-        const meta = user.user_metadata || {};
         const fullNameFromMeta = typeof meta.full_name === 'string' ? meta.full_name.trim() : '';
         const dobFromMeta = typeof meta.date_of_birth === 'string' ? meta.date_of_birth.trim() : '';
         setAccountFromSession({
@@ -109,6 +117,8 @@ export default function Index() {
           onSelectAccountType={(accountType) => {
             if (accountType === 'player') {
               setAuthMode('playerSignupAccount');
+            } else if (accountType === 'parent') {
+              setAuthMode('parentSignupAccount');
             }
           }}
           onSwitchToLogin={() => setAuthMode('login')}
@@ -128,6 +138,19 @@ export default function Index() {
           onRequireParentAccount={() => {
             setAuthMode('selectAccountType');
           }}
+        />
+      );
+    }
+    if (authMode === 'parentSignupAccount') {
+      return (
+        <ParentSignupAccountScreen
+          onSignupComplete={(data) => {
+            setSignupCompleteInfo({
+              fullName: data.fullName,
+            });
+            setAuthMode('signupComplete');
+          }}
+          onSwitchToLogin={() => setAuthMode('login')}
         />
       );
     }
@@ -159,6 +182,30 @@ export default function Index() {
     }
 
     if (profileStatus === 'needsProfile' && accountFromSession) {
+      // Show ChildProfileSetupScreen for parents, PlayerProfileSetupScreen for players
+      if (userRole === 'parent') {
+        return (
+          <ChildProfileSetupScreen
+            accountFullName={accountFromSession.fullName}
+            onProfileCompleted={async (childProfile) => {
+              const userId = session.user.id;
+
+              try {
+                await saveChildProfile(userId, childProfile, session.user.email ?? undefined);
+                setProfileStatus('hasProfile');
+              } catch (error) {
+                console.error('Error saving child profile:', error);
+                Alert.alert(
+                  'Error',
+                  'There was a problem saving your child\'s profile. Please try again.'
+                );
+              }
+            }}
+          />
+        );
+      }
+
+      // Default to PlayerProfileSetupScreen for players
       return (
         <PlayerProfileSetupScreen
           accountFullName={accountFromSession.fullName}
