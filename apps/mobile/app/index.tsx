@@ -67,10 +67,12 @@ export default function Index() {
       if (!data) {
         // No profile yet → show setup
         const meta = user.user_metadata || {};
+        const fullNameFromMeta = typeof meta.full_name === 'string' ? meta.full_name.trim() : '';
+        const dobFromMeta = typeof meta.date_of_birth === 'string' ? meta.date_of_birth.trim() : '';
         setAccountFromSession({
-          fullName: meta.full_name || user.email || '',
-          dateOfBirth: meta.date_of_birth || '',
-          email: user.email || '',
+          fullName: fullNameFromMeta || (user.email ?? ''),
+          dateOfBirth: dobFromMeta,
+          email: user.email ?? '',
         });
         setProfileStatus('needsProfile');
       } else {
@@ -159,7 +161,7 @@ export default function Index() {
     if (profileStatus === 'needsProfile' && accountFromSession) {
       return (
         <PlayerProfileSetupScreen
-          fullName={accountFromSession.fullName}
+          accountFullName={accountFromSession.fullName}
           dateOfBirth={accountFromSession.dateOfBirth}
           isUnder18={Boolean(session.user.user_metadata?.is_under_18)}
           onProfileCompleted={async (profileData) => {

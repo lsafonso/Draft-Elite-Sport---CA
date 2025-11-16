@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { DES_LOGO } from '../../lib/branding';
 
 interface PlayerProfileSetupScreenProps {
-  fullName: string;
+  accountFullName: string;
   dateOfBirth: string;
   isUnder18: boolean;
   onProfileCompleted: (profileData: {
@@ -32,7 +32,7 @@ const POSITIONS = [
 const PREFERRED_FOOT_OPTIONS = ['Left', 'Right', 'Both'];
 
 export default function PlayerProfileSetupScreen({
-  fullName,
+  accountFullName,
   dateOfBirth,
   isUnder18,
   onProfileCompleted,
@@ -52,7 +52,7 @@ export default function PlayerProfileSetupScreen({
   const [showFootPicker, setShowFootPicker] = useState(false);
 
   // Extract first name for greeting
-  const firstName = fullName.split(' ')[0] || fullName;
+  const firstName = accountFullName.split(' ')[0] || accountFullName;
 
   const handleComplete = () => {
     setError(null);

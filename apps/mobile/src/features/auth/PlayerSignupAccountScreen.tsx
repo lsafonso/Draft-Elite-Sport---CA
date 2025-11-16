@@ -218,28 +218,34 @@ export default function PlayerSignupAccountScreen({
           </Text>
 
           <View style={styles.form}>
-            <TextInput
-              style={[styles.input, isFullNameFocused && styles.inputFocused]}
-              placeholder="Full name"
-              placeholderTextColor="#777777"
-              value={fullName}
-              onChangeText={setFullName}
-              onFocus={() => setIsFullNameFocused(true)}
-              onBlur={() => setIsFullNameFocused(false)}
-              autoCapitalize="words"
-              autoComplete="name"
-            />
+            <View>
+              <Text style={styles.label}>Full name *</Text>
+              <TextInput
+                style={[styles.input, isFullNameFocused && styles.inputFocused]}
+                placeholder="Full name"
+                placeholderTextColor="#777777"
+                value={fullName}
+                onChangeText={setFullName}
+                onFocus={() => setIsFullNameFocused(true)}
+                onBlur={() => setIsFullNameFocused(false)}
+                autoCapitalize="words"
+                autoComplete="name"
+              />
+            </View>
 
-            <TextInput
-              style={[styles.input, isDateOfBirthFocused && styles.inputFocused]}
-              placeholder="e.g. 31/12/2010"
-              placeholderTextColor="#777777"
-              value={dateOfBirth}
-              onChangeText={setDateOfBirth}
-              onFocus={() => setIsDateOfBirthFocused(true)}
-              onBlur={() => setIsDateOfBirthFocused(false)}
-              keyboardType="default"
-            />
+            <View>
+              <Text style={styles.label}>Date of birth *</Text>
+              <TextInput
+                style={[styles.input, isDateOfBirthFocused && styles.inputFocused]}
+                placeholder="e.g. 31/12/2010"
+                placeholderTextColor="#777777"
+                value={dateOfBirth}
+                onChangeText={setDateOfBirth}
+                onFocus={() => setIsDateOfBirthFocused(true)}
+                onBlur={() => setIsDateOfBirthFocused(false)}
+                keyboardType="default"
+              />
+            </View>
 
             <TextInput
               style={[styles.input, isEmailFocused && styles.inputFocused]}
@@ -357,6 +363,12 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: 16,
+  },
+  label: {
+    fontSize: 13,
+    color: '#B3B3B3',
+    marginBottom: 8,
+    fontWeight: '500',
   },
   input: {
     height: 48,

@@ -29,9 +29,10 @@ export async function savePlayerProfile(
   const payload = {
     user_id: userId,
     role: 'player',
-    full_name: account.fullName,
-    date_of_birth: account.dateOfBirth,
+    full_name: account.fullName.trim(),
+    date_of_birth: account.dateOfBirth.trim(), // DD/MM/YYYY string
     email: account.email,
+    country: profile.nationality.trim(), // map nationality to country
     is_under_18: profile.isUnder18,
     position: profile.position,
     location: profile.location,
