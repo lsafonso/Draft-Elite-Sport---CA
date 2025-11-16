@@ -183,7 +183,9 @@ function RootContent() {
             if (error) {
               Alert.alert(
                 'Error',
-                'There was a problem saving your profile. Please try again.'
+                error.message
+                  ? `There was a problem saving your profile: ${error.message}`
+                  : 'There was a problem saving your profile. Please try again.'
               );
               return;
             }

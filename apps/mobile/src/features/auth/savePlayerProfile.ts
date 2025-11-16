@@ -48,6 +48,10 @@ export async function savePlayerProfile(
     .from('profiles')
     .upsert(payload, { onConflict: 'user_id' });
 
+  if (error) {
+    console.error('savePlayerProfile error', error);
+  }
+
   return { data, error };
 }
 
